@@ -1,0 +1,50 @@
+#include <Wire.h>
+
+#define ADS 0x40
+#define MT_CMD 0xe3 //using hold master mode, requesting temperature
+#define MRH_CMD 0xe5//using hold master mode, requesting humidity
+
+void setup() {
+  // put your setup code here, to run once:
+  Wire.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  byte temp_l,temp_h,humd_l,humd_h;
+  uint16_t temp,humd;
+  float T,RH;
+  //get temperature
+  Wire.beginTransmission(ADS);
+  Wire.endTransmission();//Start
+  Wire.beginTransmission(ADS);
+  Wire.write(MT_CMD);
+  Wire.endTransmission();
+  delay(500);
+  Wire.requestFrom(ADS, 2);
+  if (Wire.available() <= 2);
+  {
+    temp_h = Wire.read();
+    temp_l=Wire.read();
+    temp=temp_h<<8|temp_l;
+    T=-46.85 + 175.72/65536*temp;//16bit->65536
+    Serial.println(T);
+  }
+  //get humidity
+  Wire.beginTransmission(ADS);
+  Wire.endTransmission();//Start
+  Wire.beginTransmission(ADS);
+  Wire.write(MRH_CMD);
+  Wire.endTransmission();
+  delay(500);
+  Wire.requestFrom(ADS, 2);
+  if (Wire.available() <= 2);
+  {
+    humd_h = Wire.read();
+    humd_l=Wire.read();
+    humd = humd_h<<8|humd_l;
+    RH= -6.0+125.0/65536*humd;
+    Serial.println(RH);
+  }
+}
